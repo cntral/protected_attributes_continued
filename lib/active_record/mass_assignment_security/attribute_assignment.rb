@@ -84,6 +84,21 @@ module ActiveRecord
 
       protected
 
+      def _assign_attribute(k, v)
+        public_send("#{k}=", v)
+      rescue NoMethodError
+        if respond_to?("#{k}=")
+          raise
+        else
+          raise UnknownAttributeError.new(self, k)
+        end
+      end
+
+      # Assign any deferred nested attributes after the base attributes have been set.
+      def assign_nested_parameter_attributes(pairs)
+        pairs.each { |k, v| _assign_attribute(k, v) }
+      end
+
       def mass_assignment_options
         @mass_assignment_options ||= {}
       end
